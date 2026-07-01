@@ -1,4 +1,8 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
+
+class AskRequest(BaseModel):
+    question: str
 
 app = FastAPI()
 
@@ -9,3 +13,7 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.post("/ask")
+async def ask(request: AskRequest):
+    return {"answer": f"You're question was {request.question}"}
