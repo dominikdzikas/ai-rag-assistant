@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel, Field
 from app.llm import generate_llm
+from app.document_loader import extract_text_from_pdf
 
 
 class AskRequest(BaseModel):
@@ -25,4 +26,15 @@ async def ask(request: AskRequest):
     answer = await generate_llm(request.question)
     return {
         "answer": answer
+    }
+
+@app.post("/documents/extract")
+async def extract_document(file: UploadFile = File(...)):
+    content = await file.read()
+    text, page_count = extract_text_from_pdf(content)
+    return {
+        "filename": file.filename,
+        "pages": page_count,
+        "characters": len(text),
+        "preview": text[0:500],
     }
