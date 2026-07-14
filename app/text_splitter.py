@@ -1,3 +1,23 @@
+import re
+
+
+def fix_spaced_characters(text: str) -> str:
+    pattern = r"(?<!\S)(?:\w ){2,}\w(?!\S)"
+
+    return re.sub(
+        pattern,
+        lambda match: match.group(0).replace(" ", ""),
+        text,
+        )
+
+
+def normalize_text(text: str) -> str:
+    text = fix_spaced_characters(text)
+    text = " ".join(text.split())
+
+    return text
+
+
 def chunk_text(
         text: str,
         chunk_size: int = 1000,
@@ -12,7 +32,7 @@ def chunk_text(
     if overlap >= chunk_size:
         raise ValueError("overlap must be less than chunk_size")
     
-    cleaned_text = " ".join(text.split())
+    cleaned_text = normalize_text(text)
 
     if not cleaned_text:
         return []
