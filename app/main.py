@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel, Field
 from app.llm import generate_llm
 from app.document_loader import extract_text_from_pdf
+from app.text_splitter import chunk_text
 
 
 class AskRequest(BaseModel):
@@ -32,9 +33,14 @@ async def ask(request: AskRequest):
 async def extract_document(file: UploadFile = File(...)):
     content = await file.read()
     text, page_count = extract_text_from_pdf(content)
+    chunks = chunk_text(text)
+
     return {
         "filename": file.filename,
         "pages": page_count,
         "characters": len(text),
-        "preview": text[0:500],
+        "chunk_count": len(chunks),
+        "chunk_previews": [
+            chunk[:200] for chunk in chunks[:3]
+        ],
     }
