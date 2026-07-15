@@ -119,10 +119,8 @@ Add your API key:
 
 ```env
 OPENAI_API_KEY=your_api_key_here
-OPENAI_MODEL=gpt-5-mini
+OPENAI_MODEL=gpt-4o-mini
 ```
-
-The `.env` file should never be committed to GitHub.
 
 ## Running the Application
 
