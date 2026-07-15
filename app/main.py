@@ -1,6 +1,6 @@
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
-from app.llm import generate_llm
+from app.llm import generate_llm, generate_answer_with_context
 from app.document_loader import extract_text_from_pdf
 from app.text_splitter import chunk_text
 from app.vector_store import InMemoryVectorStore
@@ -103,6 +103,38 @@ async def search(request: SearchRequest):
     return {
         "query": request.query,
         "results": [
+            {
+                "score": result.score,
+                "text": result.text[:500],
+            }
+            for result in results
+        ],
+    }
+
+@app.post("/rag/ask")
+async def rag_ask(request: AskRequest):
+    results = vector_store.search(
+        query=request.question,
+        top_k=request.top_k,
+    )
+
+    if not results:
+        raise HTTPException(
+            status_code=400,
+            detail="No relevant documents found.",
+        )
+
+    context = [result.text for result in results]
+
+    answer = await generate_answer_with_context(
+        question=request.question,
+        context=context,
+    )
+    
+    return {
+        "question": request.question,
+        "answer": answer,
+        "sources": [
             {
                 "score": result.score,
                 "text": result.text[:500],
